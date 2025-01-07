@@ -11,12 +11,8 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import time
 
-# Set API keys directly
-google_api_key = "AIzaSyDPL4tR47XLtTslgILB4FDUiZn6z8tJLiA"
-groq_api_key = "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"
-
-os.environ["GOOGLE_API_KEY"] = google_api_key
-os.environ["groq_api_key"] = groq_api_key
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+os.environ["groq_api_key"] = st.secrets["GROQ_API_KEY"]
 
 st.title("Chat With PDF")
 
