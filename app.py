@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import shutil
+import time
 from langchain_groq import ChatGroq
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -9,11 +10,13 @@ from langchain.chains import create_retrieval_chain
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-import time
 
+# Initialize API keys from Streamlit secrets
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 os.environ["groq_api_key"] = st.secrets["GROQ_API_KEY"]
-groq_api_key=os.environ["groq_api_key"]
+groq_api_key = os.environ["groq_api_key"]
+
+# Streamlit app title
 st.title("Chat With PDF")
 
 # Initialize LLM
@@ -96,10 +99,11 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True
 )
 
-if uploaded_files and st.button("Initialize Document Embedding"):
-    st.write("Processing uploaded documents...")
-    st.session_state.vectors = initialize_vector_store_from_upload(uploaded_files)
-    st.write("Vector store initialized successfully.")
+if uploaded_files:
+    if st.button("Initialize Document Embedding"):
+        with st.spinner("Processing uploaded documents..."):
+            st.session_state.vectors = initialize_vector_store_from_upload(uploaded_files)
+        st.success("Vector store initialized successfully.")
 
 question = st.text_input("Enter your question:")
 
@@ -111,6 +115,9 @@ if question and "vectors" in st.session_state:
         st.subheader("Response with Context:")
         st.text_area("Answer", responses['with_context']['answer'], height=600)
         with st.expander("Relevant Documents:"):
-            for doc in responses['with_context']['context']:
-                st.write(doc.page_content)
-                st.write("--------------------------------")
+            if responses['with_context']['context']:
+                for doc in responses['with_context']['context']:
+                    st.write(doc.page_content)
+                    st.write("--------------------------------")
+            else:
+                st.write("No relevant documents found.")
