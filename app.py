@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+
 from langchain_groq import ChatGroq
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -12,7 +13,7 @@ import time
 
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 os.environ["groq_api_key"] = st.secrets["GROQ_API_KEY"]
-
+groq_api_key=os.environ["groq_api_key"]
 st.title("Chat With PDF")
 
 # Initialize LLM
