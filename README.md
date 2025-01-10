@@ -89,12 +89,6 @@ This is a Streamlit-based application that allows users to interact with PDF doc
 
 ---
 
-## Acknowledgments
-
-This project was developed as an assignment for **StringVenture** and is deployed on **Streamlit Community Cloud**.
-
----
-
 ## License
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
