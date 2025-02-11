@@ -17,7 +17,7 @@ os.environ["groq_api_key"] = st.secrets["GROQ_API_KEY"]
 groq_api_key = os.environ["groq_api_key"]
 
 # Streamlit app title
-st.title("Chat With PDF")
+st.title("Quantum Physics Research Analysis: Using Large Language Model")
 
 # Initialize LLM
 llm = ChatGroq(groq_api_key=groq_api_key, model_name="Llama3-8b-8192", max_tokens=2048)
