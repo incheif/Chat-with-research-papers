@@ -104,8 +104,8 @@ with st.sidebar:
 # Upload Section
 st.subheader("Upload Research PDFs")
 st.markdown("""
-    Please upload one or more PDF documents related to quantum physics. These documents will be processed 
-    to create a vector store that can be used to answer your questions.
+    Please upload one or more research documents. These documents will be processed 
+    to a vector storage which can be used to answer your questions.
 """)
 
 uploaded_files = st.file_uploader(
@@ -133,8 +133,8 @@ if question and "vectors" in st.session_state:
     responses = handle_user_question(question, st.session_state.retrieval_chain)
 
     if 'with_context' in responses:
-        st.subheader("Answer with Context:")
-        st.text_area("Answer", responses['with_context']['answer'], height=600)
+        st.subheader("Answer :")
+        st.text_area(responses['with_context']['answer'], height=600)
         with st.expander("Relevant Documents:"):
             if responses['with_context']['context']:
                 for doc in responses['with_context']['context']:
@@ -145,10 +145,6 @@ if question and "vectors" in st.session_state:
 
 # Footer or Additional Information Section
 st.markdown("""
-    **About:**
-    This tool allows you to upload research documents and use a language model to analyze them. 
-    It can answer questions based on the content of the uploaded research papers.
-    
     **Disclaimer:**
     This tool is for research purposes and may not provide fully accurate or verified scientific conclusions.
 """)
