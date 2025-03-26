@@ -103,13 +103,9 @@ with st.sidebar:
 
 # Upload Section
 st.subheader("Upload Research PDFs")
-st.markdown("""
-    Please upload one or more research documents. These documents will be processed 
-    to a vector storage which can be used to answer your questions.
-""")
 
 uploaded_files = st.file_uploader(
-    "",  # Empty label to avoid errors
+    "Choose one or more Research documents",
     type=["pdf"],
     accept_multiple_files=True
 )
@@ -121,9 +117,8 @@ if uploaded_files:
         st.success("Vector store initialized successfully.")
 
 # Question Input Section
-st.subheader("Ask a Question")
 question = st.text_input(
-    "",
+    "Enter your question :",
     help="You can ask a specific question related to the uploaded documents"
 )
 
@@ -133,12 +128,7 @@ if question and "vectors" in st.session_state:
     responses = handle_user_question(question, st.session_state.retrieval_chain)
 
     if 'with_context' in responses:
-        st.subheader("Answer :")
-        st.text_area(responses['with_context']['answer'], height=600)
-        
-        response_time = responses['with_context'].get('response_time', 0)  # Default to 0 if None
-        st.markdown(f"**Response Time:** {response_time:.2f} seconds")  # Format to 2 decimal places
-        
+        st.text_area("Answer", responses['with_context']['answer'], height=600)
         with st.expander("Relevant Documents:"):
             if responses['with_context']['context']:
                 for doc in responses['with_context']['context']:
