@@ -109,7 +109,6 @@ st.markdown("""
 """)
 
 uploaded_files = st.file_uploader(
-    "Choose one or more PDF documents",
     type=["pdf"],
     accept_multiple_files=True
 )
@@ -123,7 +122,6 @@ if uploaded_files:
 # Question Input Section
 st.subheader("Ask a Question")
 question = st.text_input(
-    "Enter your question :",
     help="You can ask a specific question related to the uploaded documents"
 )
 
