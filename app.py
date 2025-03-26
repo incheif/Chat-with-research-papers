@@ -76,11 +76,12 @@ def handle_user_question(question, retrieval_chain):
     responses = {}
 
     # With context
-    start = time.process_time()
+    start_time = time.time()
     try:
         response_with_context = retrieval_chain.invoke({'input': question})
+        end_time = time.time()
         responses['with_context'] = {
-            "response_time": time.process_time() - start,
+            "response_time": round(end_time - start_time, 2),
             "answer": response_with_context.get('answer', "No answer generated."),
             "context": response_with_context.get('context', [])
         }
@@ -133,6 +134,7 @@ if question and "vectors" in st.session_state:
     if 'with_context' in responses:
         st.subheader("Answer :")
         st.text_area(responses['with_context']['answer'], height=600)
+        st.markdown(f"**Response Time:** {responses['with_context']['response_time']} seconds")
         with st.expander("Relevant Documents:"):
             if responses['with_context']['context']:
                 for doc in responses['with_context']['context']:
