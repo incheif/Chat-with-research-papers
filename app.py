@@ -76,12 +76,11 @@ def handle_user_question(question, retrieval_chain):
     responses = {}
 
     # With context
-    start_time = time.time()
+    start = time.process_time()
     try:
         response_with_context = retrieval_chain.invoke({'input': question})
-        end_time = time.time()
         responses['with_context'] = {
-            "response_time": round(end_time - start_time, 2),
+            "response_time": time.process_time() - start,
             "answer": response_with_context.get('answer', "No answer generated."),
             "context": response_with_context.get('context', [])
         }
@@ -110,7 +109,7 @@ st.markdown("""
 """)
 
 uploaded_files = st.file_uploader(
-    "",
+    "",  # Empty label to avoid errors
     type=["pdf"],
     accept_multiple_files=True
 )
@@ -135,7 +134,10 @@ if question and "vectors" in st.session_state:
     if 'with_context' in responses:
         st.subheader("Answer :")
         st.text_area(responses['with_context']['answer'], height=600)
-        st.markdown(f"**Response Time:** {responses['with_context']['response_time']} seconds")
+        
+        response_time = responses['with_context'].get('response_time', 0)  # Default to 0 if None
+        st.markdown(f"**Response Time:** {response_time:.2f} seconds")  # Format to 2 decimal places
+        
         with st.expander("Relevant Documents:"):
             if responses['with_context']['context']:
                 for doc in responses['with_context']['context']:
