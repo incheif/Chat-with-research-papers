@@ -17,7 +17,9 @@ os.environ["groq_api_key"] = st.secrets["GROQ_API_KEY"]
 groq_api_key = os.environ["groq_api_key"]
 
 # Streamlit app title
-st.title("Quantum Physics Research Analysis: Using Large Language Model")
+st.set_page_config(page_title="Research Paper Analysis", layout="wide")
+st.title("Research Paper Analysis using Retrieval Augmented Generation")
+st.markdown("#### Leverage the power of language models to analyze research papers.")
 
 # Initialize LLM
 llm = ChatGroq(groq_api_key=groq_api_key, model_name="Llama3-8b-8192", max_tokens=2048)
@@ -91,29 +93,47 @@ def handle_user_question(question, retrieval_chain):
 # Clean data folder on reload
 clean_previous_data()
 
-# Streamlit UI
-st.subheader("Upload PDFs")
+# Sidebar for navigation or settings
+with st.sidebar:
+    st.header("Settings")
+    st.markdown("""
+        - **Upload Documents** to add to the research database.
+        - **Ask Questions** based on the uploaded research documents.
+    """)
+
+# Upload Section
+st.subheader("Upload Research PDFs")
+st.markdown("""
+    Please upload one or more PDF documents related to quantum physics. These documents will be processed 
+    to create a vector store that can be used to answer your questions.
+""")
 
 uploaded_files = st.file_uploader(
-    "Upload one or more PDF documents for analysis:",
+    "Choose one or more PDF documents",
     type=["pdf"],
     accept_multiple_files=True
 )
 
 if uploaded_files:
-    if st.button("Initialize Document Embedding"):
+    if st.button("Initialize Document Embedding", key="init_embedding"):
         with st.spinner("Processing uploaded documents..."):
             st.session_state.vectors = initialize_vector_store_from_upload(uploaded_files)
         st.success("Vector store initialized successfully.")
 
-question = st.text_input("Enter your question:")
+# Question Input Section
+st.subheader("Ask a Question")
+question = st.text_input(
+    "Enter your question :",
+    help="You can ask a specific question related to the uploaded documents"
+)
 
+# Process the question if it's asked
 if question and "vectors" in st.session_state:
     st.session_state.retrieval_chain = create_retrieval_chain_with_context(llm, st.session_state.vectors)
     responses = handle_user_question(question, st.session_state.retrieval_chain)
 
     if 'with_context' in responses:
-        st.subheader("Response with Context:")
+        st.subheader("Answer with Context:")
         st.text_area("Answer", responses['with_context']['answer'], height=600)
         with st.expander("Relevant Documents:"):
             if responses['with_context']['context']:
@@ -122,3 +142,13 @@ if question and "vectors" in st.session_state:
                     st.write("--------------------------------")
             else:
                 st.write("No relevant documents found.")
+
+# Footer or Additional Information Section
+st.markdown("""
+    **About:**
+    This tool allows you to upload research documents and use a language model to analyze them. 
+    It can answer questions based on the content of the uploaded research papers.
+    
+    **Disclaimer:**
+    This tool is for research purposes and may not provide fully accurate or verified scientific conclusions.
+""")
