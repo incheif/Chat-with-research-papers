@@ -123,6 +123,7 @@ if uploaded_files:
 # Question Input Section
 st.subheader("Ask a Question")
 question = st.text_input(
+    "",
     help="You can ask a specific question related to the uploaded documents"
 )
 
