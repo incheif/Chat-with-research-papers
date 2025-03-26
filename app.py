@@ -110,6 +110,7 @@ st.markdown("""
 """)
 
 uploaded_files = st.file_uploader(
+    "",
     type=["pdf"],
     accept_multiple_files=True
 )
