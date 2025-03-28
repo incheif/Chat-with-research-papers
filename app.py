@@ -108,7 +108,11 @@ def display_response(response: Dict) -> None:
         else:
             st.write("No relevant documents found.")
 
-llm = ChatGroq(groq_api_key=groq_api_key)
+# Initialize LLM and prompt template
+llm = ChatGroq(
+    groq_api_key=groq_api_key,
+    model_name="Llama3-8b-8192"
+)
 
 prompt_template = ChatPromptTemplate.from_template(
     """
