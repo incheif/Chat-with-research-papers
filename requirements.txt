@@ -1,8 +1,9 @@
-streamlit
+streamlit>=1.33.0
 langchain-groq==0.2.2
 langchain-core==0.3.29
-langchain-google-genai==2.0.8
+langchain-google-genai==0.1.2  # Downgraded for compatibility
 langchain-community==0.3.14
 PyPDF2==3.0.1
 faiss-cpu==1.9.0.post1
-PyPDF
+pydantic==2.11.1  # Specific version to avoid conflicts
+google-generativeai==0.3.2  # Required for embeddings
