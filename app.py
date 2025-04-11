@@ -2,6 +2,9 @@ import streamlit as st
 import os
 import shutil
 import time
+import fitz  # PyMuPDF
+from PIL import Image
+import io
 from langchain_groq import ChatGroq
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -99,12 +102,30 @@ def handle_user_question(question, retrieval_chain):
 
     return responses
 
+
+
+
+def highlight_text_on_pdf(file_path, highlight_texts):
+    doc = fitz.open(file_path)
+    images_with_highlights = []
+
+    for page_num in range(len(doc)):
+        page = doc[page_num]
+        for text in highlight_texts:
+            matches = page.search_for(text)
+            for rect in matches:
+                highlight = page.add_highlight_annot(rect)
+        pix = page.get_pixmap()
+        img = Image.open(io.BytesIO(pix.tobytes("png")))
+        images_with_highlights.append(img)
+    return images_with_highlights
+
 # Clean data folder on reload
 clean_previous_data()
 
 # Sidebar for navigation or settings
 with st.sidebar:
-    st.header("Settings")
+    st.header("Assistant Panel")
     st.markdown("""
         - **Ask Questions** based on the uploaded research documents.
     """)
@@ -135,15 +156,17 @@ if question and "vectors" in st.session_state:
     st.session_state.retrieval_chain = create_retrieval_chain_with_context(llm, st.session_state.vectors)
     responses = handle_user_question(question, st.session_state.retrieval_chain)
 
-    if 'with_context' in responses:
-        st.text_area("Answer", responses['with_context']['answer'], height=600)
-        with st.expander("Relevant Documents:"):
-            if responses['with_context']['context']:
-                for doc in responses['with_context']['context']:
-                    st.write(doc.page_content)
-                    st.write("--------------------------------")
-            else:
-                st.write("No relevant documents found.")
+    if 'with_context' in responses and responses['with_context']['context']:
+        for doc in responses['with_context']['context']:
+            st.write("Matched Chunk:")
+            st.write(doc.page_content)
+            
+            file_path = doc.metadata.get("file_path")
+            if file_path:
+                images = highlight_text_on_pdf(file_path, [doc.page_content])
+                for img in images:
+                    st.image(img, use_column_width=True)
+            st.write("---")
 
 # Footer or Additional Information Section
 st.markdown("""
