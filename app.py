@@ -106,7 +106,6 @@ clean_previous_data()
 with st.sidebar:
     st.header("Settings")
     st.markdown("""
-        - **Upload Documents** to add to the research database.
         - **Ask Questions** based on the uploaded research documents.
     """)
 
