@@ -14,6 +14,7 @@ from langchain.chains import create_retrieval_chain
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from streamlit_pdf_viewer import pdf_viewer  # Import the library
 
 # Initialize API keys from Streamlit secrets
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
@@ -185,6 +186,7 @@ uploaded_files = st.file_uploader(
 # Store uploaded files in a dictionary for later reference
 uploaded_files_dict = {uploaded_file.name: uploaded_file for uploaded_file in uploaded_files}
 
+# Display uploaded PDFs using streamlit_pdf_viewer
 if uploaded_files:
     if st.button("Initialize Document Embedding", key="init_embedding"):
         with st.spinner("Processing uploaded documents..."):
@@ -209,10 +211,13 @@ if uploaded_files:
 
         st.success("Vector store initialized successfully.")
 
-        # Display uploaded PDFs
+        # Display uploaded PDFs using streamlit_pdf_viewer
         for uploaded_file in uploaded_files:
             st.markdown(f"### Uploaded File: {uploaded_file.name}")
-            embed_pdf_from_memory(uploaded_file)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+                temp_file.write(uploaded_file.read())
+                temp_file_path = temp_file.name
+                pdf_viewer(temp_file_path)  # Use pdf_viewer to display the PDF
 
         # Cleanup temporary files after processing
         for temp_file_path in temp_file_paths:
