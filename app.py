@@ -189,11 +189,14 @@ if uploaded_files:
     if st.button("Initialize Document Embedding", key="init_embedding"):
         with st.spinner("Processing uploaded documents..."):
             documents = []
+            temp_file_paths = []  # Store paths of temporary files for cleanup later
+
             for uploaded_file in uploaded_files:
                 # Save the uploaded file to a temporary file
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
                     temp_file.write(uploaded_file.read())
                     temp_file_path = temp_file.name
+                    temp_file_paths.append(temp_file_path)  # Keep track of the file path
 
                 # Use PyPDFLoader with the temporary file path
                 loader = PyPDFLoader(temp_file_path)
@@ -210,6 +213,11 @@ if uploaded_files:
         for uploaded_file in uploaded_files:
             st.markdown(f"### Uploaded File: {uploaded_file.name}")
             embed_pdf_from_memory(uploaded_file)
+
+        # Cleanup temporary files after processing
+        for temp_file_path in temp_file_paths:
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
 
 # Question Input Section
 question = st.text_input(
