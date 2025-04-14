@@ -2,6 +2,9 @@ import streamlit as st
 import os
 import shutil
 import time
+import pdfplumber  # Add this import
+import base64
+import streamlit.components.v1 as components
 from langchain_groq import ChatGroq
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -99,6 +102,36 @@ def handle_user_question(question, retrieval_chain):
 
     return responses
 
+def extract_highlighted_text(pdf_path, relevant_texts):
+    """Extract and highlight relevant text from the PDF."""
+    highlighted_pages = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_number, page in enumerate(pdf.pages):
+            page_text = page.extract_text()
+            if any(text in page_text for text in relevant_texts):
+                highlighted_pages.append((page_number + 1, page_text))
+    return highlighted_pages
+
+def display_pdf_with_highlights(pdf_path, relevant_texts):
+    """Display the PDF with highlighted text."""
+    highlighted_pages = extract_highlighted_text(pdf_path, relevant_texts)
+    if highlighted_pages:
+        st.markdown("### Highlighted Pages")
+        for page_number, page_text in highlighted_pages:
+            st.markdown(f"#### Page {page_number}")
+            for text in relevant_texts:
+                page_text = page_text.replace(text, f"**:blue[{text}]**")
+            st.write(page_text)
+    else:
+        st.write("No relevant text found in the PDF.")
+
+def embed_pdf(pdf_path):
+    """Embed a PDF file in the Streamlit app."""
+    with open(pdf_path, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="900" type="application/pdf"></iframe>'
+    components.html(pdf_display, height=900)
+
 # Clean data folder on reload
 clean_previous_data()
 
@@ -124,6 +157,12 @@ if uploaded_files:
             st.session_state.vectors = initialize_vector_store_from_upload(uploaded_files)
         st.success("Vector store initialized successfully.")
 
+        # Display uploaded PDFs
+        for uploaded_file in uploaded_files:
+            file_path = save_uploaded_file(uploaded_file)
+            st.markdown(f"### Uploaded File: {uploaded_file.name}")
+            embed_pdf(file_path)
+
 # Question Input Section
 question = st.text_input(
     "Enter your question :",
@@ -142,6 +181,8 @@ if question and "vectors" in st.session_state:
                 for doc in responses['with_context']['context']:
                     st.write(doc.page_content)
                     st.write("--------------------------------")
+                    # Highlight relevant text in the PDF
+                    display_pdf_with_highlights(doc.metadata['source'], [doc.page_content])
             else:
                 st.write("No relevant documents found.")
 
