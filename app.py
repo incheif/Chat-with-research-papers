@@ -132,6 +132,36 @@ def embed_pdf(pdf_path):
     pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="900" type="application/pdf"></iframe>'
     components.html(pdf_display, height=900)
 
+def extract_highlighted_text_from_memory(file, relevant_texts):
+    """Extract and highlight relevant text from an in-memory PDF file."""
+    highlighted_pages = []
+    with pdfplumber.open(file) as pdf:
+        for page_number, page in enumerate(pdf.pages):
+            page_text = page.extract_text()
+            if any(text in page_text for text in relevant_texts):
+                highlighted_pages.append((page_number + 1, page_text))
+    return highlighted_pages
+
+def display_pdf_with_highlights_from_memory(file, relevant_texts):
+    """Display the PDF with highlighted text from an in-memory file."""
+    highlighted_pages = extract_highlighted_text_from_memory(file, relevant_texts)
+    if highlighted_pages:
+        st.markdown("### Highlighted Pages")
+        for page_number, page_text in highlighted_pages:
+            st.markdown(f"#### Page {page_number}")
+            for text in relevant_texts:
+                page_text = page_text.replace(text, f"**:blue[{text}]**")
+            st.write(page_text)
+    else:
+        st.write("No relevant text found in the PDF.")
+
+def embed_pdf_from_memory(file):
+    """Embed a PDF file in the Streamlit app from an in-memory file."""
+    base64_pdf = base64.b64encode(file.read()).decode('utf-8')
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="900" type="application/pdf"></iframe>'
+    components.html(pdf_display, height=900)
+    file.seek(0)  # Reset file pointer for reuse
+
 # Clean data folder on reload
 clean_previous_data()
 
@@ -154,14 +184,23 @@ uploaded_files = st.file_uploader(
 if uploaded_files:
     if st.button("Initialize Document Embedding", key="init_embedding"):
         with st.spinner("Processing uploaded documents..."):
-            st.session_state.vectors = initialize_vector_store_from_upload(uploaded_files)
+            documents = []
+            for uploaded_file in uploaded_files:
+                # Use PyPDFLoader with in-memory file
+                loader = PyPDFLoader(uploaded_file)
+                documents.extend(loader.load())
+
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            final_documents = text_splitter.split_documents(documents)
+            embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+            st.session_state.vectors = FAISS.from_documents(final_documents, embeddings)
+
         st.success("Vector store initialized successfully.")
 
         # Display uploaded PDFs
         for uploaded_file in uploaded_files:
-            file_path = save_uploaded_file(uploaded_file)
             st.markdown(f"### Uploaded File: {uploaded_file.name}")
-            embed_pdf(file_path)
+            embed_pdf_from_memory(uploaded_file)
 
 # Question Input Section
 question = st.text_input(
@@ -182,7 +221,7 @@ if question and "vectors" in st.session_state:
                     st.write(doc.page_content)
                     st.write("--------------------------------")
                     # Highlight relevant text in the PDF
-                    display_pdf_with_highlights(doc.metadata['source'], [doc.page_content])
+                    display_pdf_with_highlights_from_memory(uploaded_file, [doc.page_content])
             else:
                 st.write("No relevant documents found.")
 
