@@ -4,6 +4,7 @@ import shutil
 import time
 import pdfplumber  # Add this import
 import base64
+import tempfile
 import streamlit.components.v1 as components
 from langchain_groq import ChatGroq
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -186,8 +187,13 @@ if uploaded_files:
         with st.spinner("Processing uploaded documents..."):
             documents = []
             for uploaded_file in uploaded_files:
-                # Use PyPDFLoader with in-memory file
-                loader = PyPDFLoader(uploaded_file)
+                # Save the uploaded file to a temporary file
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+                    temp_file.write(uploaded_file.read())
+                    temp_file_path = temp_file.name
+
+                # Use PyPDFLoader with the temporary file path
+                loader = PyPDFLoader(temp_file_path)
                 documents.extend(loader.load())
 
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
