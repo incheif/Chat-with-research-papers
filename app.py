@@ -182,6 +182,9 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True
 )
 
+# Store uploaded files in a dictionary for later reference
+uploaded_files_dict = {uploaded_file.name: uploaded_file for uploaded_file in uploaded_files}
+
 if uploaded_files:
     if st.button("Initialize Document Embedding", key="init_embedding"):
         with st.spinner("Processing uploaded documents..."):
@@ -226,8 +229,14 @@ if question and "vectors" in st.session_state:
                 for doc in responses['with_context']['context']:
                     st.write(doc.page_content)
                     st.write("--------------------------------")
-                    # Highlight relevant text in the PDF
-                    display_pdf_with_highlights_from_memory(uploaded_file, [doc.page_content])
+                    # Retrieve the correct file object using the file name
+                    file_name = doc.metadata['source']
+                    if file_name in uploaded_files_dict:
+                        file_obj = uploaded_files_dict[file_name]
+                        # Highlight relevant text in the PDF
+                        display_pdf_with_highlights_from_memory(file_obj, [doc.page_content])
+                    else:
+                        st.write(f"File {file_name} not found.")
             else:
                 st.write("No relevant documents found.")
 
