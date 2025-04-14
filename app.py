@@ -157,11 +157,11 @@ def display_pdf_with_highlights_from_memory(file, relevant_texts):
         st.write("No relevant text found in the PDF.")
 
 def embed_pdf_from_memory(file):
-    """Embed a PDF file in the Streamlit app from an in-memory file."""
+    """Provide a download button for the PDF file in the Streamlit app."""
     base64_pdf = base64.b64encode(file.read()).decode('utf-8')
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="900" type="application/pdf"></iframe>'
-    components.html(pdf_display, height=900)
     file.seek(0)  # Reset file pointer for reuse
+    href = f'<a href="data:application/pdf;base64,{base64_pdf}" download="document.pdf">Download PDF</a>'
+    st.markdown(href, unsafe_allow_html=True)
 
 # Clean data folder on reload
 clean_previous_data()
